@@ -38,7 +38,7 @@ services:
       - plausible_events_db
       - mail
     ports:
-      - 8000:8000
+      - 8000:8001
     env_file:
       - plausible-conf.env
     labels:
