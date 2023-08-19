@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+
+  traefik:
+    image: "traefik:latest"
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --providers.docker
+      - --log.level=ERROR
+      # - --api.insecure=True
+      - --certificatesresolvers.le.acme.email=${TRAEFIK_SSL_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/acme.json
+      - --certificatesresolvers.le.acme.tlschallenge=true
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      
+      # - --certificatesresolvers.leresolver.acme.httpchallenge=true
+      # - --certificatesresolvers.leresolver.acme.email=orca-per-0l@icloud.com #Set your email address here, is for the generation of SSL certificates with Let's Encrypt. 
+      # - --certificatesresolvers.leresolver.acme.storage=./acme.json
+      # - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+
+
+  wordpress:
+    image: wordpress:latest
+    labels:
+      - traefik.http.routers.wordpress.rule=Host(`ppccarlisle.com`, `ppccarlisle.co.uk`)
+
+      # - traefik.http.routers.wordpress.rule=Host(`www.ppccarlisle.co.uk`)
+      # - traefik.http.routers.wordpress.rule=Host(`www.ppccarlisle.com`)
+      # - traefik.http.routers.wordpress.rule=Host(`ppccarlisle.com`)
+      
+      
+      - traefik.http.routers.wordpress.tls.certresolver=le
+
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+    volumes:
+      - wordpress_data:/var/www/html
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME}
+      MYSQL_USER: ${WORDPRESS_DB_USER}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # certbot:
+  #   image: certbot/certbot
+  #   volumes:
+  #     - certbot_data:/etc/letsencrypt
+  #     - wordpress_data:/var/www/html
+  #   depends_on:
+  #     - wordpress
+  #   command: certonly --webroot --webroot-path=/var/www/html --email hello@ppccarlisle.co.uk --agree-tos --no-eff-email --staging -d ppccarlisle.com
+
+
+volumes:
+  wordpress_data:
+  db_data:
+  certbot_data:
