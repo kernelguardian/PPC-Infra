@@ -32,7 +32,7 @@ services:
   wordpress:
     image: wordpress:latest
     labels:
-      - traefik.http.routers.wordpress.rule=Host(`ppccarlisle.com`, `ppccarlisle.co.uk`)
+      - traefik.http.routers.wordpress.rule=Host(`www.ppccarlisle.co.uk`, `www.ppccarlisle.com`, `ppccarlisle.co.uk`, `ppccarlisle.com`)
 
       # - traefik.http.routers.wordpress.rule=Host(`www.ppccarlisle.co.uk`)
       # - traefik.http.routers.wordpress.rule=Host(`www.ppccarlisle.com`)
